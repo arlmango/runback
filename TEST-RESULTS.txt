@@ -1,0 +1,32 @@
+test_bad_hash_format (test_runback.Tests.test_bad_hash_format) ... ok
+test_bad_size (test_runback.Tests.test_bad_size) ... ok
+test_cli_failure (test_runback.Tests.test_cli_failure) ... ok
+test_cli_round_trip (test_runback.Tests.test_cli_round_trip) ... ok
+test_controls_and_punctuation (test_runback.Tests.test_controls_and_punctuation) ... ok
+test_doctor (test_runback.Tests.test_doctor) ... ok
+test_duplicates (test_runback.Tests.test_duplicates) ... ok
+test_existing_restore_refused (test_runback.Tests.test_existing_restore_refused) ... ok
+test_explicit_files_only (test_runback.Tests.test_explicit_files_only) ... ok
+test_extra_entry (test_runback.Tests.test_extra_entry) ... ok
+test_hidden (test_runback.Tests.test_hidden) ... ok
+test_invalid_paths (test_runback.Tests.test_invalid_paths) ... ok
+test_json_secret (test_runback.Tests.test_json_secret) ... ok
+test_missing_input (test_runback.Tests.test_missing_input) ... ok
+test_physical_size_limit (test_runback.Tests.test_physical_size_limit) ... ok
+test_repeated_snapshot_never_overwrites (test_runback.Tests.test_repeated_snapshot_never_overwrites) ... ok
+test_restore_symlink_parent (test_runback.Tests.test_restore_symlink_parent) ... ok
+test_round_trip (test_runback.Tests.test_round_trip) ... ok
+test_secret_content (test_runback.Tests.test_secret_content) ... ok
+test_secret_in_forged_archive (test_runback.Tests.test_secret_in_forged_archive) ... ok
+test_sensitive_name (test_runback.Tests.test_sensitive_name) ... ok
+test_symlink_archive (test_runback.Tests.test_symlink_archive) ... ok
+test_symlink_parent (test_runback.Tests.test_symlink_parent) ... ok
+test_symlink_source (test_runback.Tests.test_symlink_source) ... ok
+test_tampered_hash (test_runback.Tests.test_tampered_hash) ... ok
+test_traversal_archive (test_runback.Tests.test_traversal_archive) ... ok
+
+----------------------------------------------------------------------
+Ran 26 tests in 0.121s
+
+OK
+PASS: snapshot, SHA256 verification, restore, identical bytes. Demo temporary files cleaned automatically.
