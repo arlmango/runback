@@ -9,6 +9,7 @@ import sys
 import tempfile
 import zipfile
 from datetime import datetime, timezone
+from . import __version__
 
 LIMIT = 50 * 1024 * 1024
 MAX_FILES = 1000
@@ -48,19 +49,38 @@ def check_source(root, name):
         raise RunBackError('Select regular files explicitly: ' + name)
     return cur
 
-def snapshot(root, names, output):
-    root = Path(root).resolve(strict=True)
-    if not root.is_dir() or not names or len(names) > MAX_FILES:
-        raise RunBackError('Select 1–1000 files from a directory')
+def load_selection(path):
+    """Read a bounded UTF-8 JSON list; paths remain relative to --root."""
+    path = Path(path)
+    if path.is_symlink() or not path.is_file():
+        raise RunBackError('Selection must be a regular JSON file, not a symlink')
+    with path.open('rb') as f:
+        raw = f.read(MANIFEST_LIMIT + 1)
+    if len(raw) > MANIFEST_LIMIT:
+        raise RunBackError('Selection file exceeds 1 MiB')
+    names = json.loads(raw.decode('utf-8'))
+    _validate_names(names)
+    return names
+
+
+def _validate_names(names):
+    if not isinstance(names, list) or not 1 <= len(names) <= MAX_FILES:
+        raise RunBackError('Select 1–1000 files as a JSON list of relative paths')
+    for name in names:
+        safe_path(name)
     if len(set(n.casefold() for n in names)) != len(names):
         raise RunBackError('Duplicate file selection')
-    output = Path(output).absolute()
-    if output.exists() or output.is_symlink():
-        raise RunBackError('Snapshot output already exists')
+
+
+def _collect(root, names, output=None):
+    _validate_names(names)
+    root = Path(root).resolve(strict=True)
+    if not root.is_dir():
+        raise RunBackError('Root must be a directory')
     payload, total = [], 0
     for name in names:
         src = check_source(root, name)
-        if src.resolve() == output.resolve():
+        if output is not None and src.resolve() == output.resolve():
             raise RunBackError('Output cannot be an input')
         # NOFOLLOW protects final component; do not run alongside adversarial filesystem writers.
         fd = os.open(src, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0))
@@ -75,8 +95,25 @@ def snapshot(root, names, output):
             raise RunBackError('Possible secret detected in ' + name + '; remove it first')
         payload.append((name, data))
     manifest = {'format': 1, 'created_utc': datetime.now(timezone.utc).isoformat(),
-                'python': sys.version.split()[0], 'runback': '0.1.0',
+                'python': sys.version.split()[0], 'runback': __version__,
                 'files': [{'path': n, 'bytes': len(d), 'sha256': hashlib.sha256(d).hexdigest()} for n, d in payload]}
+    return manifest, payload
+
+
+def plan(root, names):
+    """Validate the same inputs as snapshot without writing a backup."""
+    manifest, payload = _collect(root, names)
+    return {'files': manifest['files'], 'file_count': len(payload),
+            'total_bytes': sum(len(data) for _, data in payload),
+            'limit_bytes': LIMIT, 'writes_performed': False,
+            'warning': 'Preview only, not a backup. Snapshot rechecks files because they may change.'}
+
+
+def snapshot(root, names, output):
+    output = Path(output).absolute()
+    if output.exists() or output.is_symlink():
+        raise RunBackError('Snapshot output already exists')
+    manifest, payload = _collect(root, names, output)
     # Exclusive creation avoids accidental overwrite even on repeated CLI calls.
     created = False
     try:

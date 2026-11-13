@@ -1,4 +1,4 @@
-# RunBack · prototype 0.1.0
+# RunBack · prototype 0.2.0
 
 Small, explicit backups for notebook experiments. **No cloud account, no network calls, no paid API.** Python 3.10+; runtime uses only the standard library.
 
@@ -8,7 +8,12 @@ Colab может сбросить `/content`. RunBack сохраняет **вы�
 Это рабочий локальный прототип, не проверенный в живой сессии Colab. Не обещает сохранность данных или автоматическое продолжение обучения. Не публиковался на PyPI. Название пакета на PyPI не проверено: не устанавливайте одноимённый пакет из интернета.
 
 ## Первый запуск без установки
-Распакуйте проект и откройте терминал в папке с этим README:
+Скачайте ZIP репозитория или клонируйте его:
+```bash
+git clone https://github.com/arlmango/runback.git
+cd runback
+```
+Откройте терминал в папке с этим README (на Mac вместо `python` может понадобиться `python3`):
 
 ```bash
 python -m runback --help
@@ -17,6 +22,23 @@ python examples/demo.py
 ```
 
 Demo создаёт собственную временную папку, сохраняет два вымышленных файла, проверяет архив, восстанавливает в другую папку и сравнивает байты. Не трогает ваши эксперименты.
+
+## Сначала проверьте список
+`plan` читает выбранные файлы, проверяет пути, размер и возможные секреты, но **не создаёт резервную копию**:
+```bash
+python -m runback plan --root /path/to/experiment --include train.py --include metrics.json
+```
+В JSON-ответе будут относительные имена, размеры, SHA256 и общий объём. При подозрительном или отсутствующем файле проверка останавливается с ошибкой: файлы не исключаются молча. После `plan` всё равно выполните `snapshot` и `verify`. Между командами файлы могут измениться, поэтому `snapshot` проверяет их заново.
+
+Чтобы не перепечатывать список, создайте `selection.json`:
+```json
+["train.py", "metrics.json"]
+```
+```bash
+python -m runback plan --root /path/to/experiment --include-file selection.json
+python -m runback snapshot --root /path/to/experiment --include-file selection.json --output /path/to/persistent/backups/experiment-001.zip
+```
+`selection.json` ищется относительно текущей папки терминала; имена внутри него всегда относительно `--root`. Формат: UTF-8 JSON-массив из 1–1000 строк, до 1 MiB. Нельзя смешивать `--include` и `--include-file`. Папки, glob, скрытые пути, выход за `--root` и дубликаты запрещены. Сам список автоматически в архив не попадает.
 
 ## Реальный эксперимент
 ```bash
@@ -49,9 +71,20 @@ from pathlib import Path
 Path('/content/drive/MyDrive/runback-backups').mkdir(exist_ok=True)
 !python -m runback doctor --storage /content/drive/MyDrive/runback-backups
 ```
-4. Пока эксперимент ещё существует, выберите свои файлы (замените пути):
+4. Пока эксперимент ещё существует, создайте список на Drive. Замените имена на свои, не добавляйте `.env`, ключи и персональные данные:
 ```python
-!python -m runback snapshot --root /content/experiment --include pipeline.py --include metrics.json --output /content/drive/MyDrive/runback-backups/experiment-001.zip
+import json
+from pathlib import Path
+selection = Path('/content/drive/MyDrive/runback-selection.json')
+selection.write_text(json.dumps(['pipeline.py', 'metrics.json']), encoding='utf-8')
+```
+5. Проверьте выбор, затем сохраните снимок под **новым** именем. Если проверка упала, сначала исправьте причину:
+```python
+!python -m runback plan --root /content/experiment --include-file /content/drive/MyDrive/runback-selection.json
+```
+
+```python
+!python -m runback snapshot --root /content/experiment --include-file /content/drive/MyDrive/runback-selection.json --output /content/drive/MyDrive/runback-backups/experiment-001.zip
 !python -m runback verify /content/drive/MyDrive/runback-backups/experiment-001.zip
 ```
 Проверьте наличие ZIP через интерфейс Drive; сохраните вторую копию отдельно. После сброса вновь подключите Drive, выполните `%cd`, затем:
@@ -80,7 +113,8 @@ This does not replace Hugging Face Trainer checkpoints/resume, MLflow experiment
 python -m unittest discover -s tests -v
 python -m compileall -q runback examples tests
 ```
-Tested locally on Linux and macOS: 26 unit tests and the snapshot/verify/restore demo. Live Colab reconnect, Windows, and unusual filesystems remain untested. No paid dependencies.
+Version 0.2.0 adds saved selections, a read-only plan command, and `--version`.
+Tests cover the CLI, malformed selections, size limits, changed files after preview, secret rejection, archive tampering, and safe restore. CI runs on Linux/macOS with Python 3.10/3.13; inspect the Actions result for your commit rather than assuming a pass. Live Colab reconnect, Windows, and unusual filesystems remain untested. No paid dependencies.
 
 ## License
 MIT. Copyright (c) 2026 Ертай Арлан Бақытұлы. See [LICENSE](LICENSE).

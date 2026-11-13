@@ -24,9 +24,24 @@ test_symlink_parent (test_runback.Tests.test_symlink_parent) ... ok
 test_symlink_source (test_runback.Tests.test_symlink_source) ... ok
 test_tampered_hash (test_runback.Tests.test_tampered_hash) ... ok
 test_traversal_archive (test_runback.Tests.test_traversal_archive) ... ok
+test_cli_invalid_selection_has_no_traceback (test_selection.SelectionTests.test_cli_invalid_selection_has_no_traceback) ... ok
+test_cli_selection_round_trip (test_selection.SelectionTests.test_cli_selection_round_trip) ... ok
+test_cli_version (test_selection.SelectionTests.test_cli_version) ... ok
+test_interrupted_write_removes_incomplete_archive (test_selection.SelectionTests.test_interrupted_write_removes_incomplete_archive) ... ok
+test_plan_does_not_write (test_selection.SelectionTests.test_plan_does_not_write) ... ok
+test_plan_rejects_oversize (test_selection.SelectionTests.test_plan_rejects_oversize) ... ok
+test_plan_rejects_secrets (test_selection.SelectionTests.test_plan_rejects_secrets) ... ok
+test_selection_bad_encoding (test_selection.SelectionTests.test_selection_bad_encoding) ... ok
+test_selection_invalid_paths (test_selection.SelectionTests.test_selection_invalid_paths) ... ok
+test_selection_invalid_types (test_selection.SelectionTests.test_selection_invalid_types) ... ok
+test_selection_size_limit (test_selection.SelectionTests.test_selection_size_limit) ... ok
+test_selection_symlink (test_selection.SelectionTests.test_selection_symlink) ... ok
+test_selection_valid (test_selection.SelectionTests.test_selection_valid) ... ok
+test_snapshot_rechecks_after_plan (test_selection.SelectionTests.test_snapshot_rechecks_after_plan) ... ok
+test_truncated_archive_is_rejected (test_selection.SelectionTests.test_truncated_archive_is_rejected) ... ok
 
 ----------------------------------------------------------------------
-Ran 26 tests in 0.121s
+Ran 41 tests in 0.230s
 
 OK
 PASS: snapshot, SHA256 verification, restore, identical bytes. Demo temporary files cleaned automatically.
